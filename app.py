@@ -35,23 +35,39 @@ def forecast_cashflow(df):
     return pd.DataFrame({'Date': forecast_dates, 'ForecastedCashBalance': forecast_balances})
 
 def generate_insights_gpt(forecast_df):
-    try:
-        prompt = f"""
-        You are a virtual CFO. Here is a 90-day cashflow forecast:
-        {forecast_df.head(20).to_string(index=False)}
-        Provide a plain-English summary of cash health and 2-3 actionable suggestions.
-        """
-        client = openai.OpenAI(api_key=OPENAI_API_KEY)
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are a financial analyst."},
-                {"role": "user", "content": prompt}
-            ]
-        )
-        return response.choices[0].message.content
-    except Exception as e:
-        return f"AI Insights unavailable: {str(e)}"
+    # GPT code temporarily disabled. Leaving here for future reactivation:
+    # try:
+    #     prompt = f"""
+    #     You are a virtual CFO. Here is a 90-day cashflow forecast:
+    #     {forecast_df.head(20).to_string(index=False)}
+    #     Provide a plain-English summary of cash health and 2-3 actionable suggestions.
+    #     """
+    #     client = openai.OpenAI(api_key=OPENAI_API_KEY)
+    #     response = client.chat.completions.create(
+    #         model="gpt-3.5-turbo",
+    #         messages=[
+    #             {"role": "system", "content": "You are a financial analyst."},
+    #             {"role": "user", "content": prompt}
+    #         ]
+    #     )
+    #     return response.choices[0].message.content
+    # except Exception as e:
+    #     return f"AI Insights unavailable: {str(e)}"
+
+    # --- Rule-based fallback summary ---
+    min_balance = forecast_df['ForecastedCashBalance'].min()
+    max_balance = forecast_df['ForecastedCashBalance'].max()
+    insights = ["Rule-Based Forecast Summary:
+"]
+    if min_balance < 0:
+        insights.append("⚠️ Your forecast shows a negative cash balance. Consider reducing expenses or boosting income.")
+    else:
+        insights.append("✅ Your forecast shows a positive cash position over the next 90 days.")
+    if max_balance > 10000:
+        insights.append("💡 Consider reinvesting or saving excess cash for growth opportunities.")
+    insights.append("📊 Keep monitoring your forecast regularly.")
+    return "
+".join(insights)
 
 def generate_pdf(insights, output_path):
     pdf = FPDF()
