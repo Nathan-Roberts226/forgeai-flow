@@ -36,24 +36,6 @@ def forecast_cashflow(df):
 
 def generate_insights_gpt(forecast_df):
     # GPT code temporarily disabled. Leaving here for future reactivation:
-    # try:
-    #     prompt = f"""
-    #     You are a virtual CFO. Here is a 90-day cashflow forecast:
-    #     {forecast_df.head(20).to_string(index=False)}
-    #     Provide a plain-English summary of cash health and 2-3 actionable suggestions.
-    #     """
-    #     client = openai.OpenAI(api_key=OPENAI_API_KEY)
-    #     response = client.chat.completions.create(
-    #         model="gpt-3.5-turbo",
-    #         messages=[
-    #             {"role": "system", "content": "You are a financial analyst."},
-    #             {"role": "user", "content": prompt}
-    #         ]
-    #     )
-    #     return response.choices[0].message.content
-    # except Exception as e:
-    #     return f"AI Insights unavailable: {str(e)}"
-
     # --- Highly Robust Rule-based Insights ---
     min_balance = forecast_df['ForecastedCashBalance'].min()
     max_balance = forecast_df['ForecastedCashBalance'].max()
@@ -71,30 +53,30 @@ def generate_insights_gpt(forecast_df):
     if min_balance < 0:
         critical_dates = forecast_df[forecast_df['ForecastedCashBalance'] < 0]['Date']
         first_dip_date = critical_dates.iloc[0].strftime('%Y-%m-%d')
-        insights.append(f"🚨 Critical Alert: Cash is expected to drop below zero on {first_dip_date}. Immediate financial action required.")
+        insights.append(f"[CRITICAL] Cash is expected to drop below zero on {first_dip_date}. Immediate financial action required.")
     elif min_balance < 5000:
-        insights.append("⚠️ Caution: Projected minimum cash balance is under $5,000, indicating potential liquidity stress.")
+        insights.append("[WARNING] Projected minimum cash balance is under $5,000, indicating potential liquidity stress.")
     else:
-        insights.append("✅ Excellent: Adequate cash levels projected across the forecast period.")
+        insights.append("[OK] Adequate cash levels projected across the forecast period.")
 
-    insights.append(f"📉 Lowest projected cash balance: ${min_balance:.2f}")
-    insights.append(f"📈 Highest projected cash balance: ${max_balance:.2f}")
+    insights.append(f"[LOW] Lowest projected cash balance: ${min_balance:.2f}")
+    insights.append(f"[HIGH] Highest projected cash balance: ${max_balance:.2f}")
 
     if weekly_trends < -50:
-        insights.append("⚠️ Negative weekly trend detected. Evaluate expense reduction opportunities or revenue acceleration strategies.")
+        insights.append("[WARNING] Negative weekly trend detected. Evaluate expense reduction opportunities or revenue acceleration strategies.")
     elif weekly_trends > 50:
-        insights.append("📊 Positive weekly cashflow trend observed. Evaluate strategic investment or savings opportunities.")
+        insights.append("[TREND] Positive weekly cashflow trend observed. Evaluate strategic investment or savings opportunities.")
     else:
-        insights.append("➖ Cashflow is steady week-over-week, indicating stability.")
+        insights.append("[STABLE] Cashflow is steady week-over-week, indicating stability.")
 
-    insights.append(f"🔥 Estimated daily cash burn rate: ${burn_rate:.2f}")
+    insights.append(f"[NOTE] Estimated daily cash burn rate: ${burn_rate:.2f}")
 
     if end_balance - start_balance > 5000:
-        insights.append("💡 Significant cash surplus projected. Explore opportunities for investment, debt repayment, or expansion.")
+        insights.append("[IDEA] Significant cash surplus projected. Explore opportunities for investment, debt repayment, or expansion.")
     elif end_balance - start_balance < -5000:
-        insights.append("🔻 Significant cash depletion projected. Immediate review of cash management strategies recommended.")
+        insights.append("[CAUTION] Significant cash depletion projected. Immediate review of cash management strategies recommended.")
 
-    insights.append("🔍 Continual weekly cashflow review is strongly advised to proactively manage financial health.")
+    insights.append("[ADVICE] Continual weekly cashflow review is strongly advised to proactively manage financial health.")
 
     return "\n".join(insights)
 
