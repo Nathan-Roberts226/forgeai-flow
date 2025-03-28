@@ -43,7 +43,7 @@ def generate_insights_gpt(forecast_df):
         """
         client = openai.OpenAI(api_key=OPENAI_API_KEY)
         response = client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "You are a financial analyst."},
                 {"role": "user", "content": prompt}
