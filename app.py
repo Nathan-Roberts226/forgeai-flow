@@ -1,4 +1,3 @@
-import os
 from flask import Flask, request, jsonify, send_file, render_template
 import pandas as pd
 from datetime import datetime, timedelta
@@ -18,7 +17,6 @@ if not os.path.exists(UPLOAD_FOLDER):
         os.makedirs(UPLOAD_FOLDER)
     except FileExistsError:
         pass
-
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 openai.api_key = OPENAI_API_KEY
 logging.basicConfig(filename='analytics.log', level=logging.INFO)
@@ -43,14 +41,15 @@ def generate_insights_gpt(forecast_df):
         {forecast_df.head(20).to_string(index=False)}
         Provide a plain-English summary of cash health and 2-3 actionable suggestions.
         """
-        response = openai.ChatCompletion.create(
+        client = openai.OpenAI(api_key=OPENAI_API_KEY)
+        response = client.chat.completions.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "You are a financial analyst."},
                 {"role": "user", "content": prompt}
             ]
         )
-        return response.choices[0].message['content']
+        return response.choices[0].message.content
     except Exception as e:
         return f"AI Insights unavailable: {str(e)}"
 
