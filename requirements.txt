@@ -1,0 +1,6 @@
+flask
+pandas
+fpdf
+pillow
+pytesseract
+openai
