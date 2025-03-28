@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ForgeAI Flow - Upload</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f7fb; padding: 40px; text-align: center; }
+    h1 { color: #142f50; }
+    .upload-box {
+      background: white; border: 2px dashed #ccc; padding: 40px;
+      max-width: 500px; margin: 0 auto; border-radius: 10px;
+    }
+    input[type=file] { margin-top: 20px; }
+    button {
+      margin-top: 20px; padding: 10px 20px; background: #142f50;
+      color: white; border: none; border-radius: 5px; cursor: pointer;
+    }
+    #status { margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>ForgeAI Flow</h1>
+  <div class="upload-box">
+    <h2>Upload your cashflow file</h2>
+    <form id="uploadForm">
+      <input type="file" name="file" id="fileInput" accept=".csv,.png,.jpg,.jpeg">
+      <br>
+      <button type="submit">Generate Report</button>
+    </form>
+    <div id="status"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById('uploadForm');
+    const statusDiv = document.getElementById('status');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fileInput = document.getElementById('fileInput');
+      if (!fileInput.files.length) return;
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+      statusDiv.innerText = 'Uploading and processing...';
+      try {
+        const response = await fetch('/upload', {
+          method: 'POST',
+          body: formData
+        });
+        if (response.ok) {
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'ForgeAI_Flow_Report.pdf';
+          a.click();
+          statusDiv.innerText = 'Report ready! Downloading...';
+        } else {
+          const error = await response.json();
+          statusDiv.innerText = 'Error: ' + (error.error || error.message);
+        }
+      } catch (err) {
+        console.error(err);
+        statusDiv.innerText = 'Something went wrong.';
+      }
+    });
+  </script>
+</body>
+</html>
