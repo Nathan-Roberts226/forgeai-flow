@@ -1,4 +1,4 @@
-
+import os
 from flask import Flask, request, jsonify, send_file, render_template
 import pandas as pd
 from datetime import datetime, timedelta
@@ -10,7 +10,7 @@ import openai
 import logging
 
 UPLOAD_FOLDER = "uploads"
-OPENAI_API_KEY = "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"
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 app = Flask(__name__)
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
