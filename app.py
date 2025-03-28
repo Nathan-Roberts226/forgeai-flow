@@ -13,7 +13,12 @@ UPLOAD_FOLDER = "uploads"
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 app = Flask(__name__)
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+if not os.path.exists(UPLOAD_FOLDER):
+    try:
+        os.makedirs(UPLOAD_FOLDER)
+    except FileExistsError:
+        pass
+
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 openai.api_key = OPENAI_API_KEY
 logging.basicConfig(filename='analytics.log', level=logging.INFO)
