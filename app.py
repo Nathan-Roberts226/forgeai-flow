@@ -54,20 +54,49 @@ def generate_insights_gpt(forecast_df):
     # except Exception as e:
     #     return f"AI Insights unavailable: {str(e)}"
 
-    # --- Rule-based fallback summary ---
+    # --- Highly Robust Rule-based Insights ---
     min_balance = forecast_df['ForecastedCashBalance'].min()
     max_balance = forecast_df['ForecastedCashBalance'].max()
-    insights = ["Rule-Based Forecast Summary:
-"]
+    start_date = forecast_df['Date'].min().strftime('%Y-%m-%d')
+    end_date = forecast_df['Date'].max().strftime('%Y-%m-%d')
+    start_balance = forecast_df['ForecastedCashBalance'].iloc[0]
+    end_balance = forecast_df['ForecastedCashBalance'].iloc[-1]
+    avg_change = (end_balance - start_balance) / 90
+    burn_rate = abs(avg_change)
+
+    weekly_trends = forecast_df.set_index('Date').resample('W').mean().diff().mean().iloc[0]
+
+    insights = ["Advanced Cashflow Analysis:", f"Forecast range: {start_date} to {end_date}"]
+
     if min_balance < 0:
-        insights.append("⚠️ Your forecast shows a negative cash balance. Consider reducing expenses or boosting income.")
+        critical_dates = forecast_df[forecast_df['ForecastedCashBalance'] < 0]['Date']
+        first_dip_date = critical_dates.iloc[0].strftime('%Y-%m-%d')
+        insights.append(f"🚨 Critical Alert: Cash is expected to drop below zero on {first_dip_date}. Immediate financial action required.")
+    elif min_balance < 5000:
+        insights.append("⚠️ Caution: Projected minimum cash balance is under $5,000, indicating potential liquidity stress.")
     else:
-        insights.append("✅ Your forecast shows a positive cash position over the next 90 days.")
-    if max_balance > 10000:
-        insights.append("💡 Consider reinvesting or saving excess cash for growth opportunities.")
-    insights.append("📊 Keep monitoring your forecast regularly.")
-    return "
-".join(insights)
+        insights.append("✅ Excellent: Adequate cash levels projected across the forecast period.")
+
+    insights.append(f"📉 Lowest projected cash balance: ${min_balance:.2f}")
+    insights.append(f"📈 Highest projected cash balance: ${max_balance:.2f}")
+
+    if weekly_trends < -50:
+        insights.append("⚠️ Negative weekly trend detected. Evaluate expense reduction opportunities or revenue acceleration strategies.")
+    elif weekly_trends > 50:
+        insights.append("📊 Positive weekly cashflow trend observed. Evaluate strategic investment or savings opportunities.")
+    else:
+        insights.append("➖ Cashflow is steady week-over-week, indicating stability.")
+
+    insights.append(f"🔥 Estimated daily cash burn rate: ${burn_rate:.2f}")
+
+    if end_balance - start_balance > 5000:
+        insights.append("💡 Significant cash surplus projected. Explore opportunities for investment, debt repayment, or expansion.")
+    elif end_balance - start_balance < -5000:
+        insights.append("🔻 Significant cash depletion projected. Immediate review of cash management strategies recommended.")
+
+    insights.append("🔍 Continual weekly cashflow review is strongly advised to proactively manage financial health.")
+
+    return "\n".join(insights)
 
 def generate_pdf(insights, output_path):
     pdf = FPDF()
